@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Currency Converter</string>
     <string name="defaultAmount">1</string>
+    <string name="dateUpdated">Current as of </string>
 </resources>

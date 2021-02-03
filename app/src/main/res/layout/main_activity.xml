@@ -61,45 +61,37 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/topDropdown" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/bottomInputLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginRight="32dp"
-        app:layout_constraintEnd_toStartOf="@+id/bottomDropdown"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topInputLayout">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/bottomInputText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:cursorVisible="true"
-            android:ems="10"
-            android:fontFamily="sans-serif"
-            android:gravity="end"
-            android:inputType="textNoSuggestions|number|numberDecimal"
-            android:minWidth="100sp"
-            android:padding="8dp"
-            android:text="@string/defaultAmount"
-            android:textColor="@color/black"
-            android:textSize="18sp" />
-    </com.google.android.material.textfield.TextInputLayout>
-
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/resultTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:text="TextView"
         android:textColor="@color/black"
         android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="@+id/bottomInputLayout"
-        app:layout_constraintStart_toStartOf="@+id/bottomInputLayout"
-        app:layout_constraintTop_toBottomOf="@+id/bottomInputLayout" />
+        app:layout_constraintBottom_toBottomOf="@+id/bottomDropdown"
+        app:layout_constraintEnd_toEndOf="@+id/topInputLayout"
+        app:layout_constraintTop_toBottomOf="@+id/topInputLayout" />
+
+    <ImageButton
+        android:id="@+id/swapButton"
+        android:layout_width="68dp"
+        android:layout_height="55dp"
+        android:layout_marginTop="48dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/resultTextView"
+        app:srcCompat="@android:drawable/stat_notify_sync_noanim" />
+
+    <TextView
+        android:id="@+id/dateUpdated"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="@string/dateUpdated"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/swapButton" />
 
     <!--    <TextView-->
 <!--        android:id="@+id/currencyResult"-->

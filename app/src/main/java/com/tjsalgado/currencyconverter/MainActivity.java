@@ -5,10 +5,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -26,10 +29,13 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-    private RequestQueue mQueue;
     private final ArrayList<String> currencyArray = new ArrayList<>();
     private final DecimalFormat decimalFormatter = new DecimalFormat("#,###.##");
     private double exchangeRate = 0;
+    private ImageButton swapButton;
+    private String dateUpdated;
+    private TextView dateUpdatedTextView;
+    private RequestQueue mQueue;
 
     // Top input variables
     private Spinner topSpinner;
@@ -40,12 +46,9 @@ public class MainActivity extends AppCompatActivity {
 
     // Bottom input variables
     private Spinner bottomSpinner;
-    private TextWatcher bottomTextWatcher;
-    private EditText bottomEditText;
+    private TextView bottomTextView;
     private String bottomCurrency;
     private double bottomValue;
-
-    private TextView bottomTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -59,10 +62,17 @@ public class MainActivity extends AppCompatActivity {
         topEditText = findViewById(R.id.topInputText);
         topValue = Double.parseDouble(topEditText.getText().toString());
 
-        bottomEditText = findViewById(R.id.bottomInputText);
-        bottomValue = Double.parseDouble(bottomEditText.getText().toString());
+        // Initialize the TextView object
+        bottomTextView = findViewById(R.id.resultTextView);
 
-        bottomTextView = findViewById(R.id.textView);
+        // Initialize the Button
+        swapButton = findViewById(R.id.swapButton);
+        swapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                swapCurrency();
+            }
+        });
 
         // Initialize the Spinner values
         setSpinnerContent();
@@ -72,8 +82,9 @@ public class MainActivity extends AppCompatActivity {
 
         setTextChangeListener();
         topEditText.addTextChangedListener(topTextWatcher);
-        bottomEditText.addTextChangedListener(bottomTextWatcher);
+
         setExchangeRate();
+        dateUpdatedTextView = findViewById(R.id.dateUpdated);
     }
 
     /*
@@ -88,6 +99,9 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     JSONObject rates = response.getJSONObject("rates");
                     exchangeRate = rates.getDouble(bottomCurrency);
+                    dateUpdated = response.getString("date");
+                    dateUpdatedTextView.setText("Current as of " + dateUpdated);
+                    Log.e("DATE", dateUpdated);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -126,8 +140,8 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 topCurrency = parent.getItemAtPosition(position).toString();
                 setExchangeRate();
-                calculateExchange("top-to-bottom");
-                setText("bottom");
+                calculateExchange();
+                setText();
             }
 
             @Override
@@ -141,8 +155,8 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 bottomCurrency = parent.getItemAtPosition(position).toString();
                 setExchangeRate();
-                calculateExchange("top-to-bottom");
-                setText("bottom");
+                calculateExchange();
+                setText();
             }
 
             @Override
@@ -169,30 +183,8 @@ public class MainActivity extends AppCompatActivity {
                     topValue = 0.0;
                 else
                     topValue = Double.parseDouble(s.toString());
-                calculateExchange("top-to-bottom");
-                setText("bottom");
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        };
-
-        bottomTextWatcher = new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.toString().equals(""))
-                    bottomValue = 0.0;
-                else
-                    bottomValue = Double.parseDouble(s.toString());
-                calculateExchange("bottom-to-top");
-                //setText("top");
+                calculateExchange();
+                setText();
             }
 
             @Override
@@ -205,26 +197,19 @@ public class MainActivity extends AppCompatActivity {
     /*
     * setText() changes the text box values
     */
-    private void setText(String setTextBox){
-        if (setTextBox.equals("bottom")){
-            //bottomEditText.setText(decimalFormatter.format(bottomValue));
-            bottomTextView.setText(decimalFormatter.format(bottomValue));
-        }
-        else if (setTextBox.equals("top")){
-            topEditText.setText(decimalFormatter.format(topValue));
-        }
+    private void setText(){
+        bottomTextView.setText(decimalFormatter.format(bottomValue));
     }
 
     /*
     * calculateExchange() calculates the value of the inputted amount
     * after the exchange
     */
-    private void calculateExchange(String direction){
-        if (direction.equals("top-to-bottom")){
-            bottomValue = exchangeRate * topValue;
-        }
-        else if (direction.equals("bottom-to-top")){
-            topValue = bottomValue / exchangeRate;
-        }
+    private void calculateExchange(){
+        bottomValue = exchangeRate * topValue;
+    }
+
+    private void swapCurrency(){
+
     }
 }

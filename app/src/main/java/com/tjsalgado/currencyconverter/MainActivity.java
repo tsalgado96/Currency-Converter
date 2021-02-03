@@ -132,8 +132,8 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 bottomCurrency = parent.getItemAtPosition(position).toString();
                 setExchangeRate();
-                calculateExchange("bottom-to-top");
-                setText("top");
+                calculateExchange("top-to-bottom");
+                setText("bottom");
             }
 
             @Override
@@ -203,10 +203,6 @@ public class MainActivity extends AppCompatActivity {
         else if (setTextBox.equals("top")){
             userInputTextTop.setText(decimalFormatter.format(topValue));
         }
-//        String str = "";
-//        str += decimalFormatter.format(bottomValue);
-//        //userInputTextBottom.setText(currencyFormatter.format(endAmount));
-//        userInputTextBottom.setText(str);
     }
 
     /*

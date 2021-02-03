@@ -23,10 +23,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Currency;
 
 public class MainActivity extends AppCompatActivity {
     private RequestQueue mQueue;
@@ -47,33 +45,32 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
+        // Initialize the EditText object
         userInputTextTop = findViewById(R.id.topInputText);
-        userInputDouble = Double.parseDouble(userInputTextTop.getText().toString());
         userInputTextBottom = findViewById(R.id.bottomInputText);
+        userInputDouble = Double.parseDouble(userInputTextTop.getText().toString());
+        mQueue = Volley.newRequestQueue(this);
 
-        fillCurrencyArray();
+        FillCurrencyArray.fillCurrencyArray(currencyArray);
+        // Initialize the Spinner values
         setSpinnerContent();
         setSpinnerListener();
+        baseCurrency = topSpinner.getItemAtPosition(0).toString();
+        endCurrency = bottomSpinner.getItemAtPosition(0).toString();
+
         setTextChangeListener();
         setExchangeRate();
 
-        baseCurrency = topSpinner.getItemAtPosition(0).toString();
-        endCurrency = bottomSpinner.getItemAtPosition(0).toString();
     }
-
 
     private void setExchangeRate(){
         String url = "https://api.exchangeratesapi.io/latest?base=" + baseCurrency;
-        mQueue = Volley.newRequestQueue(this);
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
                     JSONObject rates = response.getJSONObject("rates");
                     exchangeRate = rates.getDouble(endCurrency);
-                    Log.e("EXCHANGE RATE", String.valueOf(exchangeRate));
-                    //endAmount = userInputDouble * rates.getDouble(endCurrency);
-                    //mTextViewResult.append(String.valueOf(endAmount));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -87,24 +84,6 @@ public class MainActivity extends AppCompatActivity {
         mQueue.add(request);
     }
 
-
-
-
-
-
-
-
-    private void calculateExchange(){
-        endAmount = exchangeRate * userInputDouble;
-    }
-
-
-
-
-
-
-
-
     private void setSpinnerContent(){
         topSpinner = findViewById(R.id.topDropdown);
         bottomSpinner = findViewById(R.id.bottomDropdown);
@@ -116,13 +95,6 @@ public class MainActivity extends AppCompatActivity {
         topSpinner.setAdapter(adapter);
         bottomSpinner.setAdapter(adapter);
     }
-
-
-
-
-
-
-
 
     private void setSpinnerListener(){
         topSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -155,13 +127,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
-
-
-
-
-
-
     private void setTextChangeListener() {
         userInputTextTop.addTextChangedListener(new TextWatcher() {
             @Override
@@ -186,8 +151,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
-
     private void setText(){
         String str = "";
         str += decimalFormatter.format(endAmount);
@@ -195,43 +158,7 @@ public class MainActivity extends AppCompatActivity {
         userInputTextBottom.setText(str);
     }
 
-
-
-
-    private void fillCurrencyArray(){
-        currencyArray.add("CAD");
-        currencyArray.add("HKD");
-        currencyArray.add("ISK");
-        currencyArray.add("PHP");
-        currencyArray.add("DKK");
-        currencyArray.add("HUF");
-        currencyArray.add("CZK");
-        currencyArray.add("GBP");
-        currencyArray.add("RON");
-        currencyArray.add("SEK");
-        currencyArray.add("IDR");
-        currencyArray.add("INR");
-        currencyArray.add("BRL");
-        currencyArray.add("RUB");
-        currencyArray.add("HRK");
-        currencyArray.add("JPY");
-        currencyArray.add("THB");
-        currencyArray.add("CHF");
-        currencyArray.add("EUR");
-        currencyArray.add("MYR");
-        currencyArray.add("BGN");
-        currencyArray.add("TRY");
-        currencyArray.add("CNY");
-        currencyArray.add("NOK");
-        currencyArray.add("NZD");
-        currencyArray.add("ZAR");
-        currencyArray.add("USD");
-        currencyArray.add("MXN");
-        currencyArray.add("SGD");
-        currencyArray.add("AUD");
-        currencyArray.add("ILS");
-        currencyArray.add("KRW");
-        currencyArray.add("PLN");
-        Collections.sort(currencyArray);
+    private void calculateExchange(){
+        endAmount = exchangeRate * userInputDouble;
     }
 }

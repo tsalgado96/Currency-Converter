@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -24,53 +23,62 @@ import org.json.JSONObject;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
     private RequestQueue mQueue;
     private final ArrayList<String> currencyArray = new ArrayList<>();
-    private double userInputDouble;
-    private Spinner topSpinner;
-    private Spinner bottomSpinner;
-    private String baseCurrency;
-    private String endCurrency;
-    private double endAmount;
+    private final DecimalFormat decimalFormatter = new DecimalFormat(".##");
     private double exchangeRate = 0;
+
+    // Top input variables
+    private Spinner topSpinner;
     private EditText userInputTextTop;
+    private String topCurrency;
+    private double topValue;
+
+    // Bottom input variables
+    private Spinner bottomSpinner;
     private EditText userInputTextBottom;
-    private final DecimalFormat decimalFormatter = new DecimalFormat("#,###.##");
+    private String bottomCurrency;
+    private double bottomValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
-        // Initialize the EditText object
-        userInputTextTop = findViewById(R.id.topInputText);
-        userInputTextBottom = findViewById(R.id.bottomInputText);
-        userInputDouble = Double.parseDouble(userInputTextTop.getText().toString());
+        FillCurrencyArray.fillCurrencyArray(currencyArray);
         mQueue = Volley.newRequestQueue(this);
 
-        FillCurrencyArray.fillCurrencyArray(currencyArray);
+        // Initialize the EditText object
+        userInputTextTop = findViewById(R.id.topInputText);
+        topValue = Double.parseDouble(userInputTextTop.getText().toString());
+
+        userInputTextBottom = findViewById(R.id.bottomInputText);
+        bottomValue = Double.parseDouble(userInputTextBottom.getText().toString());
+
         // Initialize the Spinner values
         setSpinnerContent();
         setSpinnerListener();
-        baseCurrency = topSpinner.getItemAtPosition(0).toString();
-        endCurrency = bottomSpinner.getItemAtPosition(0).toString();
+        topCurrency = topSpinner.getItemAtPosition(0).toString();
+        bottomCurrency = bottomSpinner.getItemAtPosition(0).toString();
 
         setTextChangeListener();
         setExchangeRate();
-
     }
 
+    /*
+    * setExchangeRate() makes a GET request to the api with the topCurrency as the base currency
+    * Assigns the corresponding exchange rate value to exchangeRate
+    */
     private void setExchangeRate(){
-        String url = "https://api.exchangeratesapi.io/latest?base=" + baseCurrency;
+        String url = "https://api.exchangeratesapi.io/latest?base=" + topCurrency;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
                     JSONObject rates = response.getJSONObject("rates");
-                    exchangeRate = rates.getDouble(endCurrency);
+                    exchangeRate = rates.getDouble(bottomCurrency);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -84,6 +92,9 @@ public class MainActivity extends AppCompatActivity {
         mQueue.add(request);
     }
 
+    /*
+    * setSpinnerContent() takes the items from currencyArray and initializes them to the Spinners
+    */
     private void setSpinnerContent(){
         topSpinner = findViewById(R.id.topDropdown);
         bottomSpinner = findViewById(R.id.bottomDropdown);
@@ -96,14 +107,18 @@ public class MainActivity extends AppCompatActivity {
         bottomSpinner.setAdapter(adapter);
     }
 
+    /*
+    * setSpinnerListener() sets a listener to both Spinners and
+    * calls other methods when a Spinner item is selected
+    */
     private void setSpinnerListener(){
         topSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                baseCurrency = parent.getItemAtPosition(position).toString();
+                topCurrency = parent.getItemAtPosition(position).toString();
                 setExchangeRate();
-                calculateExchange();
-                setText();
+                calculateExchange("top-to-bottom");
+                setText("bottom");
             }
 
             @Override
@@ -111,13 +126,14 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
         bottomSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                endCurrency = parent.getItemAtPosition(position).toString();
+                bottomCurrency = parent.getItemAtPosition(position).toString();
                 setExchangeRate();
-                calculateExchange();
-                setText();
+                calculateExchange("bottom-to-top");
+                setText("top");
             }
 
             @Override
@@ -127,6 +143,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /*
+    * setTextChangeListener() sets a listener on the text boxes and
+    * calls other methods when the text is changed
+    */
     private void setTextChangeListener() {
         userInputTextTop.addTextChangedListener(new TextWatcher() {
             @Override
@@ -137,11 +157,33 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (s.toString().equals(""))
-                    userInputDouble = 0.0;
+                    topValue = 0.0;
                 else
-                    userInputDouble = Double.parseDouble(s.toString());
-                calculateExchange();
-                setText();
+                    topValue = Double.parseDouble(s.toString());
+                calculateExchange("top-to-bottom");
+                setText("bottom");
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        userInputTextBottom.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.toString().equals(""))
+                    bottomValue = 0.0;
+                else
+                    bottomValue = Double.parseDouble(s.toString());
+                calculateExchange("bottom-to-top");
+                //setText("top");
             }
 
             @Override
@@ -151,14 +193,32 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void setText(){
-        String str = "";
-        str += decimalFormatter.format(endAmount);
-        //userInputTextBottom.setText(currencyFormatter.format(endAmount));
-        userInputTextBottom.setText(str);
+    /*
+    * setText() changes the text box values
+    */
+    private void setText(String setTextBox){
+        if (setTextBox.equals("bottom")){
+            userInputTextBottom.setText(decimalFormatter.format(bottomValue));
+        }
+        else if (setTextBox.equals("top")){
+            userInputTextTop.setText(decimalFormatter.format(topValue));
+        }
+//        String str = "";
+//        str += decimalFormatter.format(bottomValue);
+//        //userInputTextBottom.setText(currencyFormatter.format(endAmount));
+//        userInputTextBottom.setText(str);
     }
 
-    private void calculateExchange(){
-        endAmount = exchangeRate * userInputDouble;
+    /*
+    * calculateExchange() calculates the value of the inputted amount
+    * after the exchange
+    */
+    private void calculateExchange(String direction){
+        if (direction.equals("top-to-bottom")){
+            bottomValue = exchangeRate * topValue;
+        }
+        else if (direction.equals("bottom-to-top")){
+            topValue = bottomValue / exchangeRate;
+        }
     }
 }

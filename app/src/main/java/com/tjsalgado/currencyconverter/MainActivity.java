@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -27,20 +28,24 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     private RequestQueue mQueue;
     private final ArrayList<String> currencyArray = new ArrayList<>();
-    private final DecimalFormat decimalFormatter = new DecimalFormat(".##");
+    private final DecimalFormat decimalFormatter = new DecimalFormat("#,###.##");
     private double exchangeRate = 0;
 
     // Top input variables
     private Spinner topSpinner;
-    private EditText userInputTextTop;
+    private TextWatcher topTextWatcher;
+    private EditText topEditText;
     private String topCurrency;
     private double topValue;
 
     // Bottom input variables
     private Spinner bottomSpinner;
-    private EditText userInputTextBottom;
+    private TextWatcher bottomTextWatcher;
+    private EditText bottomEditText;
     private String bottomCurrency;
     private double bottomValue;
+
+    private TextView bottomTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -51,11 +56,13 @@ public class MainActivity extends AppCompatActivity {
         mQueue = Volley.newRequestQueue(this);
 
         // Initialize the EditText object
-        userInputTextTop = findViewById(R.id.topInputText);
-        topValue = Double.parseDouble(userInputTextTop.getText().toString());
+        topEditText = findViewById(R.id.topInputText);
+        topValue = Double.parseDouble(topEditText.getText().toString());
 
-        userInputTextBottom = findViewById(R.id.bottomInputText);
-        bottomValue = Double.parseDouble(userInputTextBottom.getText().toString());
+        bottomEditText = findViewById(R.id.bottomInputText);
+        bottomValue = Double.parseDouble(bottomEditText.getText().toString());
+
+        bottomTextView = findViewById(R.id.textView);
 
         // Initialize the Spinner values
         setSpinnerContent();
@@ -64,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
         bottomCurrency = bottomSpinner.getItemAtPosition(0).toString();
 
         setTextChangeListener();
+        topEditText.addTextChangedListener(topTextWatcher);
+        bottomEditText.addTextChangedListener(bottomTextWatcher);
         setExchangeRate();
     }
 
@@ -148,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
     * calls other methods when the text is changed
     */
     private void setTextChangeListener() {
-        userInputTextTop.addTextChangedListener(new TextWatcher() {
+        topTextWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -168,9 +177,9 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
 
             }
-        });
+        };
 
-        userInputTextBottom.addTextChangedListener(new TextWatcher() {
+        bottomTextWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -190,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
 
             }
-        });
+        };
     }
 
     /*
@@ -198,10 +207,11 @@ public class MainActivity extends AppCompatActivity {
     */
     private void setText(String setTextBox){
         if (setTextBox.equals("bottom")){
-            userInputTextBottom.setText(decimalFormatter.format(bottomValue));
+            //bottomEditText.setText(decimalFormatter.format(bottomValue));
+            bottomTextView.setText(decimalFormatter.format(bottomValue));
         }
         else if (setTextBox.equals("top")){
-            userInputTextTop.setText(decimalFormatter.format(topValue));
+            topEditText.setText(decimalFormatter.format(topValue));
         }
     }
 
